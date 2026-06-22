@@ -1,1 +1,1 @@
-# SCI-prediction-for-Gait
+# prediction-for-Gait-in SCI
