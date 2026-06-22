@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="外傷性脊髄損傷後の1年後屋内歩行自立確率を推定する端末保存型アプリ"
+    />
+    <title>脊髄損傷 歩行予後予測</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">SCI Ambulation Prediction</p>
+        <h1>脊髄損傷 歩行予後予測</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button zoom-button" id="zoomOutBtn" type="button" title="表示を縮小">A-</button>
+        <button class="icon-button zoom-button" id="zoomInBtn" type="button" title="表示を拡大">A+</button>
+        <button class="icon-button" id="exportJsonBtn" type="button" title="データを書き出し">↓</button>
+        <label class="icon-button file-action" title="データを読み込み">
+          ↑
+          <input id="importJsonInput" type="file" accept="application/json" />
+        </label>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="画面切り替え">
+      <button class="tab active" type="button" data-view="inputView">データ入力</button>
+      <button class="tab" type="button" data-view="listView">症例一覧</button>
+      <button class="tab" type="button" data-view="reportView">レポート</button>
+      <button class="tab" type="button" data-view="aboutView">出典</button>
+    </nav>
+
+    <main>
+      <section id="inputView" class="view active">
+        <div class="layout">
+          <form id="caseForm" class="panel form-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-label">データ入力</p>
+                <h2>受傷後15日以内の評価</h2>
+                <p class="helper-text">推奨：受傷後72時間～7日（最長15日以内）</p>
+              </div>
+              <button id="newCaseBtn" type="button" class="secondary-button">新規</button>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                症例ID
+                <input id="caseId" autocomplete="off" required />
+              </label>
+              <label>
+                担当者名
+                <input id="staffName" autocomplete="off" placeholder="例：山田" />
+              </label>
+              <div class="timing-field">
+                <label>
+                  受傷からの日数
+                  <select id="timingPreset">
+                    <option value="24h">24時間以内</option>
+                    <option value="48h">48時間以内</option>
+                    <option value="72h">72時間以内</option>
+                    <option value="days">日を直接入力</option>
+                  </select>
+                </label>
+                <label id="injuryDaysLabel">
+                  日数
+                  <input id="injuryDays" type="number" min="0" max="15" step="1" placeholder="例：5" />
+                </label>
+              </div>
+              <label>
+                年齢
+                <input id="age" type="number" min="18" max="120" required />
+              </label>
+            </div>
+
+            <div class="clinical-grid">
+              <label>
+                ISNCSCI NLI
+                <input id="nli" autocomplete="off" placeholder="例：C5 / T12 / L1" />
+              </label>
+              <label>
+                ASIA impairment scale
+                <select id="ais">
+                  <option value="">未選択</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                  <option value="E">E</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="score-table-wrap">
+              <table class="score-table">
+                <thead>
+                  <tr>
+                    <th>評価項目</th>
+                    <th>右</th>
+                    <th>左</th>
+                    <th>採用値</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <strong>L3 Motor</strong>
+                      <span>大腿四頭筋 / 0-5</span>
+                    </td>
+                    <td><input id="l3MotorR" type="number" min="0" max="5" step="1" /></td>
+                    <td><input id="l3MotorL" type="number" min="0" max="5" step="1" /></td>
+                    <td id="l3MotorBest">-</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>S1 Motor</strong>
+                      <span>腓腹筋・ヒラメ筋 / 0-5</span>
+                    </td>
+                    <td><input id="s1MotorR" type="number" min="0" max="5" step="1" /></td>
+                    <td><input id="s1MotorL" type="number" min="0" max="5" step="1" /></td>
+                    <td id="s1MotorBest">-</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>L3 Light touch</strong>
+                      <span>0=消失, 1=障害, 2=正常</span>
+                    </td>
+                    <td><input id="l3TouchR" type="number" min="0" max="2" step="1" /></td>
+                    <td><input id="l3TouchL" type="number" min="0" max="2" step="1" /></td>
+                    <td id="l3TouchBest">-</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>S1 Light touch</strong>
+                      <span>0=消失, 1=障害, 2=正常</span>
+                    </td>
+                    <td><input id="s1TouchR" type="number" min="0" max="2" step="1" /></td>
+                    <td><input id="s1TouchL" type="number" min="0" max="2" step="1" /></td>
+                    <td id="s1TouchBest">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="primary-button">保存</button>
+              <button id="deleteCaseBtn" type="button" class="danger-button">削除</button>
+            </div>
+          </form>
+
+          <aside class="panel result-panel" id="resultPanel">
+            <p class="section-label">予測結果</p>
+            <div class="probability-block">
+              <span id="categoryBadge" class="badge">未入力</span>
+              <strong id="probabilityText">--%</strong>
+              <span>1年後 屋内歩行自立確率</span>
+            </div>
+            <dl class="metrics">
+              <div>
+                <dt>Prediction score</dt>
+                <dd id="scoreText">-</dd>
+              </div>
+              <div>
+                <dt>ロジット</dt>
+                <dd id="logitText">-</dd>
+              </div>
+              <div>
+                <dt>年齢スコア</dt>
+                <dd id="ageScoreText">-</dd>
+              </div>
+            </dl>
+            <section class="proposal-card">
+              <p class="section-label">歩行再建への提案</p>
+              <h3 id="proposalBand">未入力</h3>
+              <p id="proposalText">確率を計算すると、歩行再建への提案が表示されます。</p>
+            </section>
+            <section class="formula-note">
+              <p>計算式</p>
+              <span id="scoreFormulaText">score = -10 x Age65 + 2 x L3 Motor + 2 x S1 Motor + 5 x L3 LT + 5 x S1 LT</span>
+              <span id="probabilityFormulaText">P = exp(-3.273 + 0.267 x score) / (1 + exp(-3.273 + 0.267 x score))</span>
+            </section>
+            <canvas id="curveCanvas" width="720" height="420" aria-label="予測曲線"></canvas>
+          </aside>
+        </div>
+      </section>
+
+      <section id="listView" class="view">
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">端末保存</p>
+              <h2>症例一覧</h2>
+              <p class="helper-text">一覧とグラフは最大10例まで表示します。</p>
+            </div>
+            <input id="caseSearch" class="search" placeholder="症例IDで検索" />
+          </div>
+          <div class="summary-strip">
+            <div><span id="totalCount">0</span><small>保存症例</small></div>
+            <div><span id="highCount">0</span><small>高確率</small></div>
+            <div><span id="midCount">0</span><small>中等度</small></div>
+            <div><span id="lowCount">0</span><small>低確率</small></div>
+          </div>
+          <canvas id="caseBarCanvas" width="900" height="360" aria-label="症例別確率グラフ"></canvas>
+          <div class="table-scroll">
+            <table class="case-list">
+              <thead>
+                <tr>
+                  <th>症例ID</th>
+                  <th>担当者</th>
+                  <th>年齢</th>
+                  <th>Score</th>
+                  <th>確率</th>
+                  <th>カテゴリ</th>
+                  <th>歩行再建提案</th>
+                  <th>受傷後</th>
+                  <th>NLI</th>
+                  <th>AIS</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="caseListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="reportView" class="view">
+        <div class="panel report-controls">
+          <div>
+            <p class="section-label">PDF出力</p>
+            <h2>症例レポート</h2>
+          </div>
+          <button id="printBtn" type="button" class="primary-button">PDF保存 / 印刷</button>
+        </div>
+        <article id="printArea" class="report-sheet">
+          <header>
+            <div>
+              <p>SCI Ambulation Prediction Report</p>
+              <h2 id="reportTitle">症例レポート</h2>
+            </div>
+            <span id="reportDate"></span>
+          </header>
+          <section class="report-grid">
+            <div>
+              <h3>入力値</h3>
+              <table id="reportInputTable"></table>
+            </div>
+            <div>
+              <h3>結果</h3>
+              <div class="report-result">
+                <span id="reportBadge" class="badge">未入力</span>
+                <strong id="reportProbability">--%</strong>
+                <small id="reportScore">Prediction score: -</small>
+              </div>
+              <div class="proposal-card report-proposal">
+                <p class="section-label">歩行再建への提案</p>
+                <h3 id="reportProposalBand">未入力</h3>
+                <p id="reportProposalText">確率を計算すると、歩行再建への提案が表示されます。</p>
+              </div>
+            </div>
+          </section>
+          <canvas id="reportCanvas" width="900" height="440" aria-label="PDF用予測曲線"></canvas>
+          <section class="formula-note report-formula">
+            <p>計算式</p>
+            <span id="reportScoreFormulaText">score = -10 x Age65 + 2 x L3 Motor + 2 x S1 Motor + 5 x L3 LT + 5 x S1 LT</span>
+            <span id="reportProbabilityFormulaText">P = exp(-3.273 + 0.267 x score) / (1 + exp(-3.273 + 0.267 x score))</span>
+          </section>
+          <p class="report-note">
+            本ツールはvan Middendorpらの臨床予測ルールに基づく補助ツールです。予測対象は1年後の屋内歩行自立であり、屋外歩行能力、歩行速度、歩行の質を直接予測するものではありません。臨床判断を置き換えるものではありません。
+          </p>
+        </article>
+      </section>
+
+      <section id="aboutView" class="view">
+        <div class="panel about-panel">
+          <p class="section-label">計算式・出典</p>
+          <h2>予測ルール</h2>
+          <div class="formula-box">
+            <p>Prediction score = -10 x Age65 + 2 x L3 Motor + 2 x S1 Motor + 5 x L3 Light touch + 5 x S1 Light touch</p>
+            <p>P = exp(-3.273 + 0.267 x score) / (1 + exp(-3.273 + 0.267 x score))</p>
+          </div>
+          <p>
+            出典: van Middendorp JJ, Hosman AJF, Donders ART, et al. A clinical prediction rule for ambulation outcomes after traumatic spinal cord injury: a longitudinal cohort study. Lancet. 2011;377:1004-1010.
+          </p>
+          <p>DOI: https://doi.org/10.1016/S0140-6736(10)62276-3</p>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
